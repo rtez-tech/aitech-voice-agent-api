@@ -4,15 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 import requests, os
 from openai import OpenAI
 
-# Load key
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
-# Enable CORS for your site
+# ✅ Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://www.aitechdisruptors.com"],
+    allow_origins=["https://www.aitechdisruptors.com", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,7 +53,7 @@ async def answer(request: Request):
 
         context = build_kb()
 
-        # 🆕 Compatible with OpenAI Python 1.x
+        # 🆕 Use OpenAI Python client v1.x syntax
         chat = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -64,16 +63,18 @@ async def answer(request: Request):
         )
         answer_text = chat.choices[0].message.content
 
-        # 🆕 TTS syntax for new client
         speech = client.audio.speech.create(
             model="gpt-4o-mini-tts",
             voice=voice,
             input=answer_text
         )
 
+        # speech is a stream object → convert to base64
+        audio_base64 = speech.read().decode("utf-8")
+
         return JSONResponse({
             "answer": answer_text,
-            "audioUrl": "data:audio/mp3;base64," + speech.to_dict()["data"]
+            "audioUrl": "data:audio/mp3;base64," + audio_base64
         })
 
     except Exception as e:
