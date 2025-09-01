@@ -1,23 +1,23 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import requests, openai, os
+import requests, os
+from openai import OpenAI
 
-# Initialize API key from environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Load key
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
-# ✅ Enable CORS so your site can call the backend
+# Enable CORS for your site
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://www.aitechdisruptors.com"],  # change/add domains if needed
+    allow_origins=["https://www.aitechdisruptors.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# List of site pages for knowledge base
 site_pages = [
     "https://www.aitechdisruptors.com",
     "https://www.aitechdisruptors.com/news",
@@ -28,7 +28,6 @@ site_pages = [
 site_kb = ""
 
 def build_kb():
-    """Fetch and cache text from site pages for context"""
     global site_kb
     if site_kb:
         return site_kb
@@ -45,7 +44,6 @@ def build_kb():
 
 @app.post("/api/answer")
 async def answer(request: Request):
-    """Main endpoint to generate answer + TTS"""
     try:
         body = await request.json()
         question = body.get("question")
@@ -56,18 +54,18 @@ async def answer(request: Request):
 
         context = build_kb()
 
-        # ChatGPT call
-        chat = openai.chat.completions.create(
+        # 🆕 Compatible with OpenAI Python 1.x
+        chat = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are the AI Tech Disruptors assistant. Use ONLY the provided context:\n" + context},
+                {"role": "system", "content": "You are the AI Tech Disruptors assistant. Use ONLY this context:\n" + context},
                 {"role": "user", "content": question}
             ]
         )
         answer_text = chat.choices[0].message.content
 
-        # Text-to-Speech
-        speech = openai.audio.speech.create(
+        # 🆕 TTS syntax for new client
+        speech = client.audio.speech.create(
             model="gpt-4o-mini-tts",
             voice=voice,
             input=answer_text
@@ -75,7 +73,7 @@ async def answer(request: Request):
 
         return JSONResponse({
             "answer": answer_text,
-            "audioUrl": "data:audio/mp3;base64," + speech["data"]
+            "audioUrl": "data:audio/mp3;base64," + speech.to_dict()["data"]
         })
 
     except Exception as e:
