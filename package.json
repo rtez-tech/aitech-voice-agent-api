@@ -1,9 +1,0 @@
-{
-  "name": "aitech-voice-agent-api",
-  "version": "1.0.0",
-  "main": "api/index.js",
-  "type": "module",
-  "dependencies": {
-    "openai": "^4.0.0"
-  }
-}
