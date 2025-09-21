@@ -2,7 +2,7 @@
 
 🚀 AI-powered conversational API with support for:
 
-* Chat (GPT-4o-mini)
+* Chat (GPT-)
 * Speech → Text (Whisper)
 * Text → Speech (gpt-4o-min)
 
