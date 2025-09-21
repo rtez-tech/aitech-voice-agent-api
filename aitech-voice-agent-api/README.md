@@ -4,7 +4,7 @@
 
 * Chat (GPT-)
 * Speech → Text (Whisper)
-* Text → Speech (gpt-4o-min)
+* Text → Speech (gpt-)
 
 ### Deploy on Vercel
 
